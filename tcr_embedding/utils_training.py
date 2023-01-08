@@ -11,6 +11,7 @@ import numpy as np
 from tcr_embedding.models.mixture_modules.rna_model import RnaModel
 from tcr_embedding.models.mixture_modules.separate_model import SeparateModel
 from tcr_embedding.models.mixture_modules.poe import PoEModel
+from tcr_embedding.models.mixture_modules.poe_emb import PoEEmbModel
 from tcr_embedding.models.mixture_modules.moe import MoEModel
 
 
@@ -31,7 +32,8 @@ def load_data(source='10x'):
 
     source = source.lower()
     if source == '10x':
-        path_source = '10x_CD8TC/v7_avidity.h5ad'
+        #path_source = '10x_CD8TC/v7_avidity.h5ad'
+        path_source = '10x_CD8TC/tcr-embed.h5ad'
     elif source == 'bcc':
         path_source = 'BCC/06_bcc_highly_var_5000.h5ad'
     elif source == 'scc':
@@ -121,6 +123,7 @@ def select_model_by_name(model_name):
         'tcr': SeparateModel,
         'moe': MoEModel,
         'poe': PoEModel,
+        'poe_emb': PoEEmbModel,
     }
     model_name = model_name.lower()
     if model_name in init_dict:

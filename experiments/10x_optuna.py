@@ -24,14 +24,20 @@ parser.add_argument('--donor', type=str, default=None)
 parser.add_argument('--filter_non_binder', type=bool, default=True)
 parser.add_argument('--split', type=int, default=0)
 parser.add_argument('--gpus', type=int, default=1)
+parser.add_argument('--tcr_emb', type=str, default=None, help="obsm column in adata obj storing tcr embeddings")
 args = parser.parse_args()
 
+if args.tcr_emb is not None:
+    args.model += '_emb'
 
 adata = utils.load_data('10x')
 if args.donor is not None:
     adata = adata[adata.obs['donor'] == f'donor_{args.donor}']
 if args.filter_non_binder:
     adata = adata[adata.obs['binding_name'].isin(const.HIGH_COUNT_ANTIGENS)]
+
+if args.tcr_emb:
+    assert args.tcr_emb in adata.obsm , f"{args.tcr_emb} is not an obsm column in the adata object"
 
 
 # subsample to get statistics
@@ -44,15 +50,18 @@ adata.obs.loc[val.obs.index, 'set'] = 'val'
 adata.obs.loc[test.obs.index, 'set'] = 'test'
 adata = adata[adata.obs['set'].isin(['train', 'val'])]
 
+study_name = f'10x_{args.donor}_{args.model}_filtered_{args.filter_non_binder}_split_{args.split}'
+if args.tcr_emb:
+    study_name += f'_tcr-emb_{args.tcr_emb}'
 
 params_experiment = {
-    'study_name': f'10x_{args.donor}_{args.model}_filtered_{args.filter_non_binder}_split_{args.split}',
+    'study_name': study_name,
     'comet_workspace': None,
     'model_name': args.model,
     'balanced_sampling': 'clonotype',
     'metadata': ['binding_name', 'clonotype', 'donor'],
-    'save_path': os.path.join(os.path.dirname(__file__), '..', 'optuna',
-                              f'10x_{args.donor}_{args.model}_split_{args.split}')
+    'save_path': os.path.join(os.path.dirname(__file__), '..', 'optuna', study_name),
+    'tcr_emb': args.tcr_emb,
 }
 
 if args.model == 'rna':

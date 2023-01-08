@@ -54,11 +54,14 @@ class VAEBaseModel(ABC):
 		self.params_joint = params_architecture['joint']
 		self.params_supervised = None
 		self.beta_only = False
+		self.tcr_emb = None
 
 		if 'tcr' in params_architecture:
 			self.params_tcr = params_architecture['tcr']
 			if 'beta_only' in self.params_tcr:
 				self.beta_only = self.params_tcr['beta_only']
+			if 'tcr_emb' in self.params_tcr:
+				self.tcr_emb = self.params_tcr['tcr_emb']
 		if 'rna' in params_architecture:
 			self.params_rna = params_architecture['rna']
 		if 'supervised' in params_architecture:
@@ -82,7 +85,10 @@ class VAEBaseModel(ABC):
 
 		# loss functions
 		self.loss_function_rna = nn.MSELoss()
-		self.loss_function_tcr = nn.CrossEntropyLoss(ignore_index=self.aa_to_id['_'])
+		if self.tcr_emb:
+			self.loss_function_tcr = nn.MSELoss()
+		else:
+			self.loss_function_tcr = nn.CrossEntropyLoss(ignore_index=self.aa_to_id['_'])
 		self.loss_function_kld = KLD()
 		self.loss_function_class = nn.CrossEntropyLoss()
 
@@ -108,7 +114,7 @@ class VAEBaseModel(ABC):
 			metadata.append(balanced_sampling)
 		self.data_train, self.data_val = initialize_data_loader(adata, metadata, conditional, label_key,
 																balanced_sampling, self.batch_size,
-																beta_only=self.beta_only)
+																beta_only=self.beta_only, tcr_emb=self.tcr_emb)
 
 	def change_adata(self, new_adata):
 		self.adata = new_adata
@@ -118,7 +124,7 @@ class VAEBaseModel(ABC):
 
 		self.data_train, self.data_val = initialize_data_loader(new_adata, self.metadata, self.conditional, self.label_key,
 																self.balanced_sampling, self.batch_size,
-																beta_only=self.beta_only)
+																beta_only=self.beta_only, tcr_emb=self.tcr_emb)
 
 	def add_new_embeddings(self, num_new_embeddings):
 		cond_emb_tmp = self.model.cond_emb.weight.data
@@ -316,7 +322,7 @@ class VAEBaseModel(ABC):
 		:return: adata containing embedding vector in adata.X for each cell and the specified metadata in adata.obs
 		"""
 		data_embed = initialize_prediction_loader(adata, metadata, self.batch_size, beta_only=self.beta_only,
-												  conditional=self.conditional)
+												  conditional=self.conditional, tcr_emb=self.tcr_emb)
 
 		zs = []
 		with torch.no_grad():
@@ -366,7 +372,7 @@ class VAEBaseModel(ABC):
 
 	def predict_label(self, adata):
 		data, _ = initialize_data_loader(adata, None, self.conditional, self.label_key,
-										 None, self.batch_size, beta_only=self.beta_only)
+										 None, self.batch_size, beta_only=self.beta_only, tcr_emb=self.tcr_emb)
 		prediction_total = []
 		with torch.no_grad():
 			for rna, tcr, seq_len, metadata_batch, labels, conditional in data:

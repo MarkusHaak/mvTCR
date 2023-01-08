@@ -7,7 +7,7 @@ import random
 from tcr_embedding.dataloader.Dataset import JointDataset
 
 
-def create_datasets(adata, val_split, metadata=None, conditional=None, labels=None, beta_only=False):
+def create_datasets(adata, val_split, metadata=None, conditional=None, labels=None, beta_only=False, tcr_emb=None):
     """
     Create torch Dataset, see above for the input
     :param adata: list of adatas
@@ -15,6 +15,8 @@ def create_datasets(adata, val_split, metadata=None, conditional=None, labels=No
     :param metadata:
     :param conditional:
     :param labels:
+    :param beta_only:
+    :param tcr_emb: obsm col storing tcr embeddings
     :return: train_dataset, val_dataset, train_masks (for continuing training)
     """
     if metadata is None:
@@ -31,9 +33,18 @@ def create_datasets(adata, val_split, metadata=None, conditional=None, labels=No
     rna_val = adata.X[~train_mask]
 
     if beta_only:
+        #if tcr_emb:
+        #    tcr_seq = adata.obsm[tcr_emb]
+        #else:
         tcr_seq = np.concatenate([adata.obsm['beta_seq']], axis=1)
         tcr_length = np.vstack([adata.obs['beta_len']]).T
+    elif tcr_emb:
+        tcr_seq = adata.obsm[tcr_emb]
+        tcr_length = np.array([[len(x)] for x in adata.obsm[tcr_emb]])
     else:
+        #if tcr_emb:
+        #    tcr_seq = adata.obsm[tcr_emb]
+        #else:
         tcr_seq = np.concatenate([adata.obsm['alpha_seq'], adata.obsm['beta_seq']], axis=1)
         tcr_length = np.vstack([adata.obs['alpha_len'], adata.obs['beta_len']]).T
     tcr_train = tcr_seq[train_mask]
@@ -67,9 +78,9 @@ def seed_worker(worker_id):
 
 
 # <- functions for the main data loader ->
-def initialize_data_loader(adata, metadata, conditional, label_key, balanced_sampling, batch_size, beta_only=False):
+def initialize_data_loader(adata, metadata, conditional, label_key, balanced_sampling, batch_size, beta_only=False, tcr_emb=None):
     train_datasets, val_datasets, train_mask = create_datasets(adata, 'set', metadata, conditional, label_key,
-                                                               beta_only=beta_only)
+                                                               beta_only=beta_only, tcr_emb=tcr_emb)
 
     if balanced_sampling is None:
         train_loader = DataLoader(train_datasets, batch_size=batch_size, shuffle=True, worker_init_fn=seed_worker)
@@ -105,9 +116,9 @@ def calculate_sampling_weights(adata, train_mask, class_column):
 
 
 # <- data loader for prediction ->
-def initialize_prediction_loader(adata, metadata, batch_size, beta_only=False, conditional=None):
+def initialize_prediction_loader(adata, metadata, batch_size, beta_only=False, conditional=None, tcr_emb=None):
     prediction_dataset, _, _ = create_datasets(adata, val_split=None, conditional=conditional,
-                                               metadata=metadata, beta_only=beta_only)
+                                               metadata=metadata, beta_only=beta_only, tcr_emb=tcr_emb)
     prediction_loader = DataLoader(prediction_dataset, batch_size=batch_size, shuffle=False)
     return prediction_loader
 

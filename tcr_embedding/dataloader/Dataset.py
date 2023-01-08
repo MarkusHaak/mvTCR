@@ -34,7 +34,10 @@ class JointDataset(torch.utils.data.Dataset):
 		self.rna_data = self.create_tensor(rna_data)
 		# self.size_factors = self.rna_data.sum(1)
 
-		self.tcr_data = torch.LongTensor(tcr_data)
+		if np.issubdtype(tcr_data.dtype, np.integer):
+			self.tcr_data = torch.LongTensor(tcr_data)
+		else:
+			self.tcr_data = torch.FloatTensor(tcr_data)
 
 		if labels is not None:
 			self.labels = torch.LongTensor(self.labels)
