@@ -102,9 +102,10 @@ def objective(trial, adata_tmp, suggest_params, params_experiment_base, optimiza
                   params_experiment['conditional'], optimization_mode_params,
                   params_experiment['label_key'], params_experiment['device'])
 
-    model.train(params_experiment['n_epochs'], params_architecture['batch_size'], params_architecture['learning_rate'],
+    pruned, score, epoch = model.train(params_experiment['n_epochs'], params_architecture['batch_size'], params_architecture['learning_rate'],
                 params_architecture['loss_weights'], params_experiment['kl_annealing_epochs'],
-                params_experiment['early_stop'], params_experiment['save_path'], comet)
+                params_experiment['early_stop'], params_experiment['save_path'], comet,
+                trial=trial)
 
     # plot UMAPs
     if comet is not None:
@@ -122,6 +123,13 @@ def objective(trial, adata_tmp, suggest_params, params_experiment_base, optimiza
                     for fig, group in zip(figs, params_experiment['metadata']):
                         comet.log_figure(f'{title}_{group}', fig)
         comet.end()
+
+    # if trial was pruned, pass that information to optuna    
+    if pruned:
+        #trial.report(model.best_optimization_metric, epoch + 1) # report best score to make that value count instead of last one
+        #raise optuna.TrialPruned()
+        print('Trial pruned')
+
     return model.best_optimization_metric
 
 

@@ -153,7 +153,8 @@ class VAEBaseModel(ABC):
 			  kl_annealing_epochs=None,
 			  early_stop=None,
 			  save_path='../saved_models/',
-			  comet=None):
+			  comet=None,
+			  trial=None	):
 		"""
 		Train the model for n_epochs
 		:param n_epochs: None or int, number of epochs to train, if None n_iters needs to be int
@@ -170,6 +171,7 @@ class VAEBaseModel(ABC):
 		self.loss_weights = loss_weights
 		self.comet = comet
 		self.kl_annealing_epochs = kl_annealing_epochs
+		self.trial = trial
 		assert 3 <= len(loss_weights) <= 4, 'Length of loss weights need to be either 3 or 4.'
 
 		try:
@@ -194,10 +196,18 @@ class VAEBaseModel(ABC):
 			with torch.no_grad():
 				val_loss_summary = self.run_epoch(epoch, phase='val')
 				self.log_losses(val_loss_summary, epoch)
-				self.additional_evaluation(epoch, save_path)
+				intermediate_score = self.additional_evaluation(epoch, save_path)
+
+			# report intermediate score to optuna
+			if self.trial is not None:
+				self.trial.report(intermediate_score, epoch)
 
 			if self.do_early_stopping(val_loss_summary['val Loss'], early_stop, save_path, epoch):
-				break
+				break # prune trial
+		# return if trial was pruned or not
+		else:
+			return False, intermediate_score, epoch
+		return True, intermediate_score, epoch
 
 	def run_epoch(self, epoch, phase='train'):
 		if phase == 'train':
@@ -297,6 +307,7 @@ class VAEBaseModel(ABC):
 			self.save(os.path.join(save_path, f'best_model_by_metric.pt'))
 		if self.comet is not None:
 			self.comet.log_metric('max_metric', self.best_optimization_metric, epoch=epoch)
+		return score
 
 	def do_early_stopping(self, val_loss, early_stop, save_path, epoch):
 		if self.best_loss is None or val_loss < self.best_loss:
@@ -306,7 +317,7 @@ class VAEBaseModel(ABC):
 		else:
 			self.no_improvements += 1
 		if early_stop is not None and self.no_improvements > early_stop:
-			print('Early stopped')
+			#print('Early stopped')
 			return True
 		if self.comet is not None:
 			self.comet.log_metric('Epochs without Improvements', self.no_improvements, epoch=epoch)
