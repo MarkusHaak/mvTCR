@@ -33,6 +33,8 @@ if args.tcr_emb is not None:
 adata = utils.load_data('10x')
 if args.donor is not None:
     adata = adata[adata.obs['donor'] == f'donor_{args.donor}']
+else:
+    args.donor = 'all-donors'
 if args.filter_non_binder:
     adata = adata[adata.obs['binding_name'].isin(const.HIGH_COUNT_ANTIGENS)]
 

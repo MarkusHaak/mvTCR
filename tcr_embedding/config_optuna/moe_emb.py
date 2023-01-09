@@ -2,7 +2,7 @@ def suggest_params(trial):
     dropout = trial.suggest_float('dropout', 0, 0.3, step=0.05)  # used twice
     activation = trial.suggest_categorical('activation', ['linear', 'leakyrelu'])  # used for conditional sampling
     rna_hidden = trial.suggest_int('rna_hidden', 500, 2000, step=250)  # hdim should be less than rna_hidden
-    tcr_hidden = trial.suggest_int('tcr_hidden', 500, 2000, step=250)  # hdim should be less than tcr_hidden
+    tcr_hidden = trial.suggest_int('tcr_hidden', 500, 2000, step=250)  # hdim should be less than rna_hidden
     hdim = trial.suggest_int('hdim', 100, min(rna_hidden, tcr_hidden, 800), step=100)  # shared_hidden should be less than hdim
     shared_hidden = trial.suggest_int('shared_hidden', 100, min(hdim * 2, 500),
                                       step=100)  # zdim should be less than shared_hidden
@@ -33,7 +33,6 @@ def suggest_params(trial):
             'activation': 'leakyrelu',
             'batch_norm': True,
             'dropout': dropout,
-            #'gene_hidden': [rna_hidden] * rna_num_layers,
             'hidden': [rna_hidden] * rna_num_layers,
             'num_layers': rna_num_layers,
             'output_activation': 'linear'

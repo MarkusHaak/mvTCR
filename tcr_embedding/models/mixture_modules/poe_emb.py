@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 
-from tcr_embedding.models.architectures.transformer import TransformerEncoder, TransformerDecoder
+#from tcr_embedding.models.architectures.transformer import TransformerEncoder, TransformerDecoder
 from tcr_embedding.models.architectures.mlp import MLP
 from tcr_embedding.models.architectures.mlp_scRNA import build_mlp_encoder, build_mlp_decoder
 from tcr_embedding.models.vae_base_model import VAEBaseModel

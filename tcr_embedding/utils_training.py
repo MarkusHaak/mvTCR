@@ -13,6 +13,7 @@ from tcr_embedding.models.mixture_modules.separate_model import SeparateModel
 from tcr_embedding.models.mixture_modules.poe import PoEModel
 from tcr_embedding.models.mixture_modules.poe_emb import PoEEmbModel
 from tcr_embedding.models.mixture_modules.moe import MoEModel
+from tcr_embedding.models.mixture_modules.moe_emb import MoEEmbModel
 
 
 def fix_seeds(random_seed=42):
@@ -122,6 +123,7 @@ def select_model_by_name(model_name):
         'separate': SeparateModel,
         'tcr': SeparateModel,
         'moe': MoEModel,
+        'moe_emb': MoEEmbModel,
         'poe': PoEModel,
         'poe_emb': PoEEmbModel,
     }
