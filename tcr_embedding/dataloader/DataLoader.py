@@ -95,24 +95,39 @@ def initialize_data_loader(adata, metadata, conditional, label_key, balanced_sam
     return train_loader, val_loader
 
 
-def calculate_sampling_weights(adata, train_mask, class_column):
-    """
-    Calculate sampling weights for more balanced sampling in case of imbalanced classes,
-    :params class_column: str, key for class to be balanced
-    :params log_divisor: divide the label counts by this factor before taking the log, higher number makes the sampling more uniformly balanced
-    :return: list of weights
-    """
-    label_counts = []
+#def calculate_sampling_weights(adata, train_mask, class_column):
+#    """
+#    Calculate sampling weights for more balanced sampling in case of imbalanced classes,
+#    :params class_column: str, key for class to be balanced
+#    :params log_divisor: divide the label counts by this factor before taking the log, higher number makes the sampling more uniformly balanced
+#    :return: list of weights
+#    """
+#    label_counts = []
+#
+#    label_count = adata[train_mask].obs[class_column].map(adata[train_mask].obs[class_column].value_counts())
+#    label_counts.append(label_count)
+#
+#    label_counts = pd.concat(label_counts, ignore_index=True)
+#    label_counts = np.log(label_counts / 10 + 1)
+#    label_counts = 1 / label_counts
+#
+#    sampling_weights = label_counts / sum(label_counts)
+#    return sampling_weights
 
-    label_count = adata[train_mask].obs[class_column].map(adata[train_mask].obs[class_column].value_counts())
-    label_counts.append(label_count)
-
-    label_counts = pd.concat(label_counts, ignore_index=True)
-    label_counts = np.log(label_counts / 10 + 1)
-    label_counts = 1 / label_counts
-
-    sampling_weights = label_counts / sum(label_counts)
-    return sampling_weights
+def calculate_sampling_weights(adata, train_mask, class_column, thr=0.05):
+    def norm_thr(value_counts, thr=thr):
+        target = thr * value_counts.sum()
+        for i,norm_thr in enumerate(value_counts.sort_values()):
+            N = value_counts.sort_values()[:i].sum() + (len(value_counts) - i) * norm_thr
+            if N >= target:
+                norm_thr = norm_thr - ((N - target) / (len(value_counts) - i))
+                return norm_thr
+    vc = adata[train_mask].obs[class_column].value_counts()
+    thr = norm_thr(vc)
+    label_p = (thr / vc).clip(0., 1.)
+    p = adata[train_mask].obs[class_column].map(label_p)
+    p /= p.sum()
+    return p
 
 
 # <- data loader for prediction ->

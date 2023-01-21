@@ -54,6 +54,8 @@ class MLP(nn.Module):
             return nn.LeakyReLU(0.2, inplace=True)
         elif name == 'sigmoid':
             return nn.Sigmoid()
+        elif name == 'tanh':
+            return nn.Tanh()
         elif name == 'softmax':
             return nn.Softmax()
         elif name == 'exponential':

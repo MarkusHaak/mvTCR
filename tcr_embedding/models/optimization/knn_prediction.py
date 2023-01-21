@@ -21,4 +21,4 @@ def report_knn_prediction(adata, model, optimization_mode_params, epoch, comet):
                 comet.log_metrics(metric, prefix=antigen, epoch=epoch)
             else:
                 comet.log_metric('accuracy', metric, epoch=epoch)
-    return metrics['weighted avg']['f1-score'], operator.gt
+    return metrics[optimization_mode_params.get('knn_metric', 'weighted avg')]['f1-score'], operator.gt

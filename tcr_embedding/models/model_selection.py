@@ -44,7 +44,7 @@ def complete_params_experiment(params):
         'label_key': None,
         'n_epochs': 200,
         'kl_annealing_epochs': None,
-        'early_stop': 5,
+        'early_stop': 10,
         'save_path': '../saved_models/',
         'model_name': 'moe',
     }
@@ -133,18 +133,18 @@ def objective(trial, adata_tmp, suggest_params, params_experiment_base, optimiza
     return model.best_optimization_metric
 
 
-def run_model_selection(adata, params_experiment, params_optimization, num_samples, timeout=None, n_jobs=1):
+def run_model_selection(adata, params_experiment, params_optimization, num_samples, timeout=None, continue_study=False, n_jobs=1):
     sampler = optuna.samplers.TPESampler(seed=42)  # Make the sampler behave in a deterministic way.
 
     direction = get_direction(params_optimization['name'])
 
     storage = f'sqlite:///{params_experiment["save_path"]}.db'
-    if os.path.exists(params_experiment['save_path'] + '.db'):
+    if os.path.exists(params_experiment['save_path'] + '.db' and not continue_study):
         os.remove(params_experiment['save_path'] + '.db')
     os.makedirs(os.path.dirname(params_experiment['save_path']), exist_ok=True)
 
     study = optuna.create_study(study_name=params_experiment['study_name'], sampler=sampler, storage=storage,
-                                direction=direction, load_if_exists=False)
+                                direction=direction, load_if_exists=continue_study)
 
     suggest_params = get_parameter_functions(params_experiment['model_name'], params_optimization['name'])
     # study.enqueue_trial(init_params)
