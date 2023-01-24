@@ -99,8 +99,8 @@ def objective(trial, adata_tmp, suggest_params, params_experiment_base, optimiza
 
     model = utils.select_model_by_name(params_experiment['model_name'])
     model = model(adata, params_architecture, params_experiment['balanced_sampling'], params_experiment['metadata'],
-                  params_experiment['conditional'], optimization_mode_params,
-                  params_experiment['label_key'], params_experiment['device'])
+                params_experiment['conditional'], optimization_mode_params,
+                params_experiment['label_key'], params_experiment['device'])
 
     pruned, score, epoch = model.train(params_experiment['n_epochs'], params_architecture['batch_size'], params_architecture['learning_rate'],
                 params_architecture['loss_weights'], params_experiment['kl_annealing_epochs'],
@@ -152,8 +152,12 @@ def run_model_selection(adata, params_experiment, params_optimization, num_sampl
     study.optimize(lambda trial: objective(trial, adata, suggest_params, params_experiment, params_optimization),
                    n_trials=num_samples, timeout=timeout, n_jobs=n_jobs)
 
-    pruned_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.PRUNED]
-    complete_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.COMPLETE]
+    try:
+        pruned_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.PRUNED]
+        complete_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.COMPLETE]
+    except:
+        pruned_trials = [t for t in study.trials if t.state == optuna.trial.TrialState.PRUNED]
+        complete_trials = [t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE]
 
     print('Study statistics:')
     print(f'  Number of finished trials: {len(study.trials)}')

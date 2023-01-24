@@ -96,7 +96,7 @@ class MoEModelTorch(nn.Module):
 
 		if conditional is not None and self.cond_input:
 			h_tcr = torch.cat([h_tcr, cond_emb_vec], dim=1)  # shape=[batch_size, hdim+n_cond]
-
+		
 		# Encode RNA
 		h_rna = self.rna_encoder(rna)  # shape=[batch_size, hdim]
 		if conditional is not None and self.cond_input:
