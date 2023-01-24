@@ -90,5 +90,5 @@ params_optimization = {
     'knn_metric': args.knn_metric,
 }
 
-timeout = (args.timeout * 60 * 60) #- 300
+timeout = (args.timeout * 60 * 60) - 300
 run_model_selection(adata, params_experiment, params_optimization, None, timeout, args.continue_study, args.gpus)

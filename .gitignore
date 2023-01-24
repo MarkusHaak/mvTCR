@@ -1,5 +1,6 @@
 data/
 saved_models/
+logs/
 .idea/
 **/.ipynb_checkpoints/
 comet_ml_key/

@@ -73,7 +73,7 @@ class VAEBaseModel(ABC):
 		self.aa_to_id = adata.uns['aa_to_id']
 
 		if self.device is None:
-			self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+			self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 		self._train_history = defaultdict(list)
 		self._val_history = defaultdict(list)
