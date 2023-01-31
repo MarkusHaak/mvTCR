@@ -4,7 +4,7 @@ def suggest_params(trial):
     mlp_activation = trial.suggest_categorical('mlp_activation', ['leakyrelu', 'relu', 'sigmoid', 'tanh'])
     rna_hidden = trial.suggest_int('rna_hidden', 200, 2000)  # hdim should be less than rna_hidden
     tcr_hidden = trial.suggest_int('tcr_hidden', 100, 1000)  # hdim should be less than rna_hidden
-    hdim = trial.suggest_int('hdim', 50, min(rna_hidden, tcr_hidden, 800))  # shared_hidden should be less than hdim
+    hdim = trial.suggest_int('hdim', 50, min(rna_hidden, tcr_hidden, 800), step=2)  # shared_hidden should be less than hdim
     shared_hidden = trial.suggest_int('shared_hidden', 30, min(hdim * 2, 500))  # zdim should be less than shared_hidden
     num_layers = trial.suggest_int('num_layers', 1, 3) if activation == 'leakyrelu' else 1
     rna_num_layers = trial.suggest_int('rna_num_layers', 1, 3)

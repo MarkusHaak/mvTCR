@@ -61,13 +61,11 @@ if args.tcr_emb:
 #adata.obs.loc[test.obs.index, 'set'] = 'test'
 adata = adata[adata.obs['set'].isin(['train', 'val'])]
 
-study_name = f'10x_{args.donor}_{args.model}_filtered_{args.filter_non_binder}_split_{args.split}'
+study_name = f'10x_{args.donor}_{args.model}_filtered_{args.filter_non_binder}'
 if args.tcr_emb:
     study_name += f'_tcr-emb_{args.tcr_emb}'
 if args.knn_metric != 'weighted avg':
     study_name += f"_metric_{args.knn_metric.replace(' ','-')}"
-if args.filter_non_binder != 'all':
-    study_name += f"_filter-nb_{args.filter_non_binder}"
 #if args.normalize_binders:
 #    study_name += f"_normalize_{args.normalize_binders}"
 

@@ -40,7 +40,8 @@ def load_data(source='10x'):
     elif source == 'scc':
         path_source = 'SCC/06_scc_highly_var_5000.h5ad'
     elif source == 'covid':
-        path_source = 'Covid/04_covid_highly_var_5000.h5ad'
+        #path_source = 'Covid/04_covid_highly_var_5000.h5ad'
+        path_source = 'Covid/04_covid_highly_var_5000_tcr-embed.h5ad'
     elif source == 'haniffa':
         path_source = 'Haniffa/v3_conditional.h5ad'
     elif source == 'haniffa_bcr':

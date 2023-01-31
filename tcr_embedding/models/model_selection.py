@@ -150,7 +150,7 @@ def run_model_selection(adata, params_experiment, params_optimization, num_sampl
     suggest_params = get_parameter_functions(params_experiment['model_name'], params_optimization['name'])
     # study.enqueue_trial(init_params)
     study.optimize(lambda trial: objective(trial, adata, suggest_params, params_experiment, params_optimization),
-                   n_trials=num_samples, timeout=timeout, n_jobs=n_jobs)
+                   n_trials=num_samples, timeout=timeout, n_jobs=n_jobs, catch=(ValueError,))
 
     try:
         pruned_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.PRUNED]
