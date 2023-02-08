@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='poe')
 parser.add_argument('--donor', type=str, default=None)
 parser.add_argument('--filter_non_binder', choices=['all', 'val', 'False'], default='all')
-parser.add_argument('--split', type=int, default=0)
+parser.add_argument('--split', type=int)
 parser.add_argument('--gpus', type=int, default=1)
 parser.add_argument('--tcr_emb', type=str, default=None, help="obsm column in adata obj storing tcr embeddings")
 
@@ -51,14 +51,15 @@ if args.tcr_emb:
     assert args.tcr_emb in adata.obsm , f"{args.tcr_emb} is not an obsm column in the adata object"
 
 
-## subsample to get statistics
-#random_seed = args.split
-#train_val, test = group_shuffle_split(adata, group_col='clonotype', val_split=0.20, random_seed=random_seed)
-#train, val = group_shuffle_split(train_val, group_col='clonotype', val_split=0.25, random_seed=random_seed)
+# subsample to get statistics
+if args.split is not None:
+    random_seed = args.split
+    train_val, test = group_shuffle_split(adata, group_col='clonotype', val_split=0.20, random_seed=random_seed)
+    train, val = group_shuffle_split(train_val, group_col='clonotype', val_split=0.25, random_seed=random_seed)
 
-#adata.obs['set'] = 'train'
-#adata.obs.loc[val.obs.index, 'set'] = 'val'
-#adata.obs.loc[test.obs.index, 'set'] = 'test'
+    adata.obs['set'] = 'train'
+    adata.obs.loc[val.obs.index, 'set'] = 'val'
+    adata.obs.loc[test.obs.index, 'set'] = 'test'
 adata = adata[adata.obs['set'].isin(['train', 'val'])]
 
 study_name = f'10x_{args.donor}_{args.model}_filtered_{args.filter_non_binder}'
@@ -66,6 +67,8 @@ if args.tcr_emb:
     study_name += f'_tcr-emb_{args.tcr_emb}'
 if args.knn_metric != 'weighted avg':
     study_name += f"_metric_{args.knn_metric.replace(' ','-')}"
+if args.split is not None:
+    study_name += f"_split_{args.split}"
 #if args.normalize_binders:
 #    study_name += f"_normalize_{args.normalize_binders}"
 

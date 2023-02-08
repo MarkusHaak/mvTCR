@@ -19,7 +19,7 @@ utils.fix_seeds(42)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='poe')
-parser.add_argument('--split', type=int, default=0)
+parser.add_argument('--split', type=int)
 parser.add_argument('--gpus', type=int, default=1)
 parser.add_argument('--tcr_emb', type=str, default=None, help="obsm column in adata obj storing tcr embeddings")
 parser.add_argument('--timeout', type=float, default=48., help='max optimization time in hours.')
@@ -32,17 +32,20 @@ if args.tcr_emb is not None:
 adata = utils.load_data('covid')
 
 # subsample to get statistics
-#random_seed = args.split
-#sub, non_sub = group_shuffle_split(adata, group_col='clonotype', val_split=0.2, random_seed=random_seed)
-#train, val = group_shuffle_split(sub, group_col='clonotype', val_split=0.20, random_seed=random_seed)
-#adata.obs['set'] = 'train'
-#adata.obs.loc[non_sub.obs.index, 'set'] = '-'
-#adata.obs.loc[val.obs.index, 'set'] = 'val'
+if args.split is not None:
+    random_seed = args.split
+    sub, non_sub = group_shuffle_split(adata, group_col='clonotype', val_split=0.2, random_seed=random_seed)
+    train, val = group_shuffle_split(sub, group_col='clonotype', val_split=0.20, random_seed=random_seed)
+    adata.obs['set'] = 'train'
+    adata.obs.loc[non_sub.obs.index, 'set'] = '-'
+    adata.obs.loc[val.obs.index, 'set'] = 'val'
 adata = adata[adata.obs['set'].isin(['train', 'val'])]
 
 study_name = f'Covid_{args.model}'
 if args.tcr_emb:
     study_name += f'_tcr-emb_{args.tcr_emb}'
+if args.split is not None:
+    study_name += f"_split_{args.split}"
 
 params_experiment = {
     'study_name': study_name,
